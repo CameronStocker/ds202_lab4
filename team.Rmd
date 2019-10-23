@@ -25,15 +25,14 @@ library(dplyr)
 
 #Step 1: Cleaning
 ```{r}
-offense %>%
+offClean = offense %>%
   mutate(Name = as.factor(Name)) %>%
   mutate(Opponent_Opponent = as.factor(Opponent_Opponent))
-defense %>%
+defClean = defense %>%
   mutate(Name = as.factor(Name)) %>%
   mutate(Opponent_Opponent = as.factor(Opponent_Opponent))
-bio %>%
+bioClean = bio %>%
   mutate(Name = as.factor(Name))
-
 ```
 
 
