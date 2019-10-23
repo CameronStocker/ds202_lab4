@@ -61,10 +61,27 @@ defClean %>%
   ggplot(aes(x = "West Virginia", y = "Kansas State")) + geom_point()
 ```
 
+Here are the first few rows from the City and State columns.
 
+```{r}
+bioClean = bioClean %>% separate("Hometown", sep = ", ", into = c("City", "State"))
+bioClean %>% select(City, State) %>% head()
+```
 
+Here is a list of the number of players from each state.
 
+```{r}
+bioClean %>% group_by(State) %>% summarize(n=n())
+```
 
+#Step 3: Joining data frames
+
+From the scatterplot below, it does not appear that weight has a relationship with the amount of receiving yards from a player.
+
+```{r}
+offBios = inner_join(bioClean, offense, by=c("Name","Opponent_Opponent"))
+offBios %>% group_by(Weight) %>% summarize(Receiving_YDS = sum(Receiving_YDS)) %>% ggplot(aes(Weight, Receiving_YDS)) + geom_point()
+```
 
 
 
