@@ -12,14 +12,14 @@ knitr::opts_chunk$set(echo = TRUE)
 #Outline
 We are using `dplyr` & `tidyr` to manipulate and clean a dataset with 2018 Iowa State Football statistics. This dataset includes stats collected from both sides of the ball, Offense & Defense for every game of the 2018 season as well as information regarding each player's background. To get more information about the players we will have use joins in order to get the data from the offense and defense data sets available to be be used with the biography data set. 
 
-```{r}
+```{r,include=FALSE}
 library(readxl)
 defense <- read_excel('cyclonesFootball2018.xlsx', sheet='Defensive')
 offense <- read_excel('cyclonesFootball2018.xlsx', sheet='Offensive')
 bio <- read_excel('cyclonesFootball2018.xlsx', sheet='Biography')
 library(tidyr)
 library(dplyr)
-
+library(ggplot2)
 ```
 
 
@@ -41,5 +41,32 @@ str(defClean)
 str(offClean)
 str(bioClean)
 ```
+
+#Step 2: Tidying the Clean Defense Data
+```{r}
+defClean = defClean %>%
+  gather(key = Statistic, value = Total, 3:11)
+defenseGroup =  defClean %>% group_by(Name, Statistic) %>% summarize(Total = sum(Total))
+defenseGroup %>% 
+  ggplot(aes(Total)) + geom_histogram(bins = 25) + facet_wrap(~Statistic)
+```
+
+Above you can see a plot of histograms with defensive data. As you can see above, Turnovers are significantly more rare. There are many players with just zero or even just one Interception, Forced Fumble, & Fumble Recovery. Whereas Solo Tackles and Tackles Assists have some players with up to the mid 50s. 
+
+
+```{r}
+defClean %>%
+  filter(Statistic == "Tackles_Solo" & Opponent_Opponent == c("West Virginia","Kansas State")) %>%
+  spread(key = Opponent_Opponent, value = Total) %>%
+  ggplot(aes(x = "West Virginia", y = "Kansas State")) + geom_point()
+```
+
+
+
+
+
+
+
+
 
 
