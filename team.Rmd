@@ -33,6 +33,13 @@ defClean = defense %>%
   mutate(Opponent_Opponent = as.factor(Opponent_Opponent))
 bioClean = bio %>%
   mutate(Name = as.factor(Name))
+defClean = mutate_at(defClean, names(defClean[,3:length(defClean)]), as.numeric)
+offClean = mutate_at(offClean, names(offClean[,3:length(offClean)]), as.numeric)
+bioClean = mutate_at(bioClean, "Weight", as.numeric)
+bioClean = bioClean %>% separate("Height", sep = "-", into = c("Feet", "inches")) %>% mutate_at(c("Feet", "inches"), as.numeric) %>% mutate(Height = Feet*12 + inches) %>% select(-Feet,-inches)
+str(defClean)
+str(offClean)
+str(bioClean)
 ```
 
 
