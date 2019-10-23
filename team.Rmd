@@ -9,3 +9,31 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+#Outline
+We are using `dplyr` & `tidyr` to manipulate and clean a dataset with 2018 Iowa State Football statistics. This dataset includes stats collected from both sides of the ball, Offense & Defense for every game of the 2018 season as well as information regarding each player's background. To get more information about the players we will have use joins in order to get the data from the offense and defense data sets available to be be used with the biography data set. 
+
+```{r}
+library(readxl)
+defense <- read_excel('cyclonesFootball2018.xlsx', sheet='Defensive')
+offense <- read_excel('cyclonesFootball2018.xlsx', sheet='Offensive')
+bio <- read_excel('cyclonesFootball2018.xlsx', sheet='Biography')
+library(tidyr)
+library(dplyr)
+
+```
+
+
+#Step 1: Cleaning
+```{r}
+offense %>%
+  mutate(Name = as.factor(Name)) %>%
+  mutate(Opponent_Opponent = as.factor(Opponent_Opponent))
+defense %>%
+  mutate(Name = as.factor(Name)) %>%
+  mutate(Opponent_Opponent = as.factor(Opponent_Opponent))
+bio %>%
+  mutate(Name = as.factor(Name))
+
+```
+
+
