@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Outline
+# Outline
 We are using `dplyr` & `tidyr` to manipulate and clean a dataset with 2018 Iowa State Football statistics. This dataset includes stats collected from both sides of the ball, Offense & Defense for every game of the 2018 season as well as information regarding each player's background. To get more information about the players we will have use joins in order to get the data from the offense and defense data sets available to be be used with the biography data set. 
 
 ```{r,include=FALSE}
@@ -23,7 +23,7 @@ library(ggplot2)
 ```
 
 
-#Step 1: Cleaning
+# Step 1: Cleaning
 ```{r}
 offClean = offense %>%
   mutate(Name = as.factor(Name)) %>%
@@ -44,46 +44,57 @@ str(bioClean)
 
 #Step 2: Tidying the Clean Defense Data
 ```{r}
-defClean = defClean %>%
+defGather = defClean %>%
   gather(key = Statistic, value = Total, 3:11)
-defenseGroup =  defClean %>% group_by(Name, Statistic) %>% summarize(Total = sum(Total))
+###Group the data to look at each player's season totals to get a better idea of which statistics are more rare
+defenseGroup =  defGather %>% group_by(Name, Statistic) %>% summarize(Total = sum(Total))
 defenseGroup %>% 
-  ggplot(aes(Total)) + geom_histogram(bins = 25) + facet_wrap(~Statistic)
+  ggplot(aes(Total)) + geom_histogram(bins = 25) + facet_wrap(~Statistic) + labs(title = "Histogram of the total number of each Defensive Statistic for each player during the season")
 ```
 
 Above you can see a plot of histograms with defensive data. As you can see above, Turnovers are significantly more rare. There are many players with just zero or even just one Interception, Forced Fumble, & Fumble Recovery. Whereas Solo Tackles and Tackles Assists have some players with up to the mid 50s. 
 
 
 ```{r}
-defClean %>%
+defGather %>%
   filter(Statistic == "Tackles_Solo" & Opponent_Opponent == c("West Virginia","Kansas State")) %>%
   spread(key = Opponent_Opponent, value = Total) %>%
-  ggplot(aes(x = "West Virginia", y = "Kansas State")) + geom_point()
+  ggplot(aes(x = `West Virginia`, y = `Kansas State`)) + geom_point() + labs(title = "Solo Tackles in West Virginia game vs Solo Tackles in Kansas State game")
 ```
 
-Here are the first few rows from the City and State columns.
+Above is a plot of solo tackles in the West Virginia vs the solo tackles in the Kansas State game. It appears that Iowa State had better defense against Kansas State as there are a higher number of solo tackles along the y-axis.
 
 ```{r}
 bioClean = bioClean %>% separate("Hometown", sep = ", ", into = c("City", "State"))
 bioClean %>% select(City, State) %>% head()
 ```
 
-Here is a list of the number of players from each state.
+Above are the first few rows from the City and State columns.
 
 ```{r}
-bioClean %>% group_by(State) %>% summarize(n=n())
+bioClean %>% group_by(State) %>% summarize(n=n()) %>% print()
 ```
 
-#Step 3: Joining data frames
+Above is a list of the number of players from each state.
+
+# Step 3: Joining data frames
 
 From the scatterplot below, it does not appear that weight has a relationship with the amount of receiving yards from a player.
 
 ```{r}
-offBios = inner_join(bioClean, offense, by=c("Name","Opponent_Opponent"))
-offBios %>% group_by(Weight) %>% summarize(Receiving_YDS = sum(Receiving_YDS)) %>% ggplot(aes(Weight, Receiving_YDS)) + geom_point()
+offBios = inner_join(bioClean, offClean, by=c("Name"))
+offBios %>% group_by(Weight) %>% summarize(Receiving_YDS = sum(Receiving_YDS)) %>% ggplot(aes(Weight, Receiving_YDS)) + geom_point() + labs(title = "The weight of a player vs their receiving yards from the year")
 ```
 
+Question: Of the non-lineman positions, which positions have the highest weights on average?
 
+Answer: After examining the plot below, it looks like the Tight End and Linebacker positions have the highest mean weight, with cornerbacks having the lowest.
 
-
-
+```{r}
+defBios = inner_join(bioClean, defense, by=c("Name"))
+offTrim = select(offBios, Name, Position, Weight)
+defTrim = select(defBios, Name, Position, Weight)
+allTrim = rbind(offTrim, defTrim)
+allTrim = filter(allTrim)
+allTrim %>% filter(Position == c("Wide Receiver", "Tight End", "Quarterback", "Running Back", "Defensive Back", "Linebacker", "Cornerback")) %>% group_by(Position) %>% summarize(meanWeight = mean(Weight)) %>% ggplot(aes(x = Position, y = meanWeight)) + geom_bar(stat = "identity")
+```
