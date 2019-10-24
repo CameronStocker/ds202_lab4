@@ -44,10 +44,10 @@ str(bioClean)
 
 #Step 2: Tidying the Clean Defense Data
 ```{r}
-defClean = defClean %>%
+defGather = defClean %>%
   gather(key = Statistic, value = Total, 3:11)
 ###Group the data to look at each player's season totals to get a better idea of which statistics are more rare
-defenseGroup =  defClean %>% group_by(Name, Statistic) %>% summarize(Total = sum(Total))
+defenseGroup =  defGather %>% group_by(Name, Statistic) %>% summarize(Total = sum(Total))
 defenseGroup %>% 
   ggplot(aes(Total)) + geom_histogram(bins = 25) + facet_wrap(~Statistic) + labs(title = "Histogram of the total number of each Defensive Statistic for each player during the season")
 ```
@@ -56,7 +56,7 @@ Above you can see a plot of histograms with defensive data. As you can see above
 
 
 ```{r}
-defClean %>%
+defGather %>%
   filter(Statistic == "Tackles_Solo" & Opponent_Opponent == c("West Virginia","Kansas State")) %>%
   spread(key = Opponent_Opponent, value = Total) %>%
   ggplot(aes(x = `West Virginia`, y = `Kansas State`)) + geom_point() + labs(title = "Solo Tackles in West Virginia game vs Solo Tackles in Kansas State game")
@@ -86,7 +86,20 @@ offBios = inner_join(bioClean, offClean, by=c("Name"))
 offBios %>% group_by(Weight) %>% summarize(Receiving_YDS = sum(Receiving_YDS)) %>% ggplot(aes(Weight, Receiving_YDS)) + geom_point() + labs(title = "The weight of a player vs their receiving yards from the year")
 ```
 
+Question: Of the non-lineman positions, which positions have the highest weights on average?
 
+Answer: After examining the plot below, it looks like the Tight End and Linebacker positions have the highest mean weight, with cornerbacks having the lowest.
+
+```{r}
+defBios = inner_join(bioClean, defense, by=c("Name"))
+
+offTrim = select(offBios, Name, Position, Weight)
+defTrim = select(defBios, Name, Position, Weight)
+allTrim = rbind(offTrim, defTrim)
+allTrim = filter(allTrim)
+
+allTrim %>% filter(Position == c("Wide Receiver", "Tight End", "Quarterback", "Running Back", "Defensive Back", "Linebacker", "Cornerback")) %>% group_by(Position) %>% summarize(meanWeight = mean(Weight)) %>% ggplot(aes(x = Position, y = meanWeight)) + geom_bar(stat = "identity")
+```
 
 
 
